@@ -21,14 +21,17 @@ class ArgParser {
 
    let findNth, keyword, searchArr
 
+  //
    if (!Array.isArray(search)) {
-     //if not array (multiple targets), then check for dots
+     //Parser should either handle dot notation OR multiple words. But not both.
     let dots = search.split('.');
     if (dots.length > 1) {
       //either parse dots
         const parts = search.split('.');
         findNth = 1;
         keyword = null;
+
+        //Fail if there are two .'s in the string.
         if (parts.length > 2) {
           return false;
         }
@@ -49,6 +52,7 @@ class ArgParser {
     searchArr = search;
   }
 
+    //go through each entity in the list
     let encountered = 0;
     for (let entity of list) {
       let key, entry;
@@ -65,8 +69,9 @@ class ArgParser {
       let nameMatches=0;
       //if multiple search words are used
       if (Array.isArray(searchArr)) {
+        //go through each of the search words
         for (let searchWord of searchArr) {
-          if (entry.keywords && entry.keywords.some((k)=> searchWord.indexOf(k) > -1)) {
+          if (entry.keywords && entry.keywords.some((k)=> searchWord.includes(k))) {
             matches++;
           }
           if (entry.name && entry.name.toLowerCase().split(" ").includes(searchWord.toLowerCase())) {
@@ -80,7 +85,7 @@ class ArgParser {
         //single search word used
 
       // prioritize keywords over item/player names
-      if (entry.keywords && (entry.keywords.some( k => keyword.indexOf(k) > -1) || entry.uuid === keyword)) {
+      if (entry.keywords && (entry.keywords.some( k => keyword.includes(k) || entry.uuid === keyword))) {
         encountered++;
         if (encountered === findNth) {
           return returnKey ? [key, entry] : entry;
@@ -90,6 +95,7 @@ class ArgParser {
         continue;
       }
 
+      //check entity name as well
       if (entry.name && entry.name.toLowerCase().split(" ").includes(keyword.toLowerCase())) {
         encountered++;
         if (encountered === findNth) {
